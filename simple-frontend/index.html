@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdTech Assignment System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .hidden { display: none; }
+        .loading {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav id="navigation" class="bg-blue-600 text-white p-4 hidden">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">📚 EdTech Assignment System</h1>
+            <div class="flex items-center space-x-4">
+                <span id="user-info" class="flex items-center"></span>
+                <button id="logout-btn" class="px-3 py-1 bg-blue-700 rounded hover:bg-blue-800">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Auth Container -->
+    <div id="auth-container" class="py-12">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">EdTech Assignment System</h1>
+            <p class="text-gray-600">Streamline assignment creation and submission</p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-100 border border-red-300 rounded-md text-red-700"></div>
+            <form id="login-form-element" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="login-email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="login-password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Sign In
+                </button>
+            </form>
+            <p class="mt-4 text-center text-sm text-gray-600">
+                Don't have an account? 
+                <button id="switch-to-register" class="text-blue-600 hover:underline">Sign up</button>
+            </p>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md hidden">
+            <h2 class="text-2xl font-bold text-center mb-6">Register</h2>
+            <div id="register-error" class="hidden mb-4 p-3 bg-red-100 border border-red-300 rounded-md text-red-700"></div>
+            <form id="register-form-element" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="register-email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input type="text" id="register-username" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                        <input type="text" id="register-firstname" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                        <input type="text" id="register-lastname" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select id="register-role" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="STUDENT">Student</option>
+                        <option value="TEACHER">Teacher</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="register-password" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" id="register-password-confirm" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    Create Account
+                </button>
+            </form>
+            <p class="mt-4 text-center text-sm text-gray-600">
+                Already have an account? 
+                <button id="switch-to-login" class="text-blue-600 hover:underline">Sign in</button>
+            </p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden">
+        <div class="max-w-6xl mx-auto p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="dashboard-title" class="text-2xl font-bold text-gray-800">Assignments</h2>
+                <button id="create-assignment-btn" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 hidden">
+                    ➕ Create Assignment
+                </button>
+            </div>
+
+            <div id="loading-assignments" class="text-center py-12 hidden">
+                <div class="loading"></div>
+                <p class="mt-4 text-gray-600">Loading assignments...</p>
+            </div>
+
+            <div id="assignments-error" class="hidden p-4 bg-red-100 border border-red-300 rounded-md text-red-700 mb-6"></div>
+
+            <div id="no-assignments" class="hidden text-center py-12 text-gray-500">
+                <p>No assignments available.</p>
+            </div>
+
+            <div id="assignments-grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
+        </div>
+    </div>
+
+    <!-- Create Assignment Modal -->
+    <div id="create-assignment-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Create New Assignment</h2>
+            <div id="create-assignment-error" class="hidden mb-4 p-3 bg-red-100 border border-red-300 rounded-md text-red-700"></div>
+            <form id="create-assignment-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                    <input type="text" id="assignment-title" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="assignment-description" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                    <input type="datetime-local" id="assignment-due-date" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        Create Assignment
+                    </button>
+                    <button type="button" id="cancel-create-assignment" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Submit Assignment Modal -->
+    <div id="submit-assignment-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Submit Assignment</h2>
+            <p id="submit-assignment-title" class="text-gray-600 mb-4"></p>
+            <div id="submit-assignment-error" class="hidden mb-4 p-3 bg-red-100 border border-red-300 rounded-md text-red-700"></div>
+            <form id="submit-assignment-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Content</label>
+                    <textarea id="submission-content" rows="6" placeholder="Enter your assignment content here..." class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">File Upload (Optional)</label>
+                    <input type="file" id="submission-file" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        📤 Submit
+                    </button>
+                    <button type="button" id="cancel-submit-assignment" class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Submissions Modal -->
+    <div id="view-submissions-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="submissions-title" class="text-xl font-bold">Submissions</h2>
+                <button id="close-submissions" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+            </div>
+            
+            <div id="loading-submissions" class="text-center py-8 hidden">
+                <div class="loading"></div>
+                <p class="mt-2 text-gray-600">Loading submissions...</p>
+            </div>
+            
+            <div id="submissions-error" class="hidden p-4 bg-red-100 border border-red-300 rounded-md text-red-700"></div>
+            
+            <div id="no-submissions" class="hidden text-center py-8 text-gray-500">
+                No submissions yet.
+            </div>
+            
+            <div id="submissions-list" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        let currentUser = null;
+        let currentToken = null;
+        let selectedAssignment = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for saved auth
+            const savedToken = localStorage.getItem('token');
+            const savedUser = localStorage.getItem('user');
+            
+            if (savedToken && savedUser) {
+                currentToken = savedToken;
+                currentUser = JSON.parse(savedUser);
+                showDashboard();
+            }
+
+            // Event listeners
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Auth form listeners
+            document.getElementById('login-form-element').addEventListener('submit', handleLogin);
+            document.getElementById('register-form-element').addEventListener('submit', handleRegister);
+            document.getElementById('switch-to-register').addEventListener('click', () => switchAuthForm(false));
+            document.getElementById('switch-to-login').addEventListener('click', () => switchAuthForm(true));
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+            // Assignment form listeners
+            document.getElementById('create-assignment-btn').addEventListener('click', () => showModal('create-assignment-modal'));
+            document.getElementById('create-assignment-form').addEventListener('submit', handleCreateAssignment);
+            document.getElementById('cancel-create-assignment').addEventListener('click', () => hideModal('create-assignment-modal'));
+
+            // Submission form listeners
+            document.getElementById('submit-assignment-form').addEventListener('submit', handleSubmitAssignment);
+            document.getElementById('cancel-submit-assignment').addEventListener('click', () => hideModal('submit-assignment-modal'));
+
+            // Submissions view listeners
+            document.getElementById('close-submissions').addEventListener('click', () => hideModal('view-submissions-modal'));
+        }
+
+        function switchAuthForm(isLogin) {
+            document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+            document.getElementById('register-form').classList.toggle('hidden', isLogin);
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.access) {
+                    currentToken = data.access;
+                    currentUser = data.user;
+                    localStorage.setItem('token', data.access);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    showDashboard();
+                } else {
+                    showError('login-error', 'Invalid credentials');
+                }
+            } catch (error) {
+                showError('login-error', 'Login failed. Please try again.');
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+
+            if (password !== passwordConfirm) {
+                showError('register-error', "Passwords don't match");
+                return;
+            }
+
+            const userData = {
+                email: document.getElementById('register-email').value,
+                username: document.getElementById('register-username').value,
+                first_name: document.getElementById('register-firstname').value,
+                last_name: document.getElementById('register-lastname').value,
+                role: document.getElementById('register-role').value,
+                password: password,
+                password_confirm: passwordConfirm
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+
+                if (data.access) {
+                    currentToken = data.access;
+                    currentUser = data.user;
+                    localStorage.setItem('token', data.access);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    showDashboard();
+                } else {
+                    showError('register-error', 'Registration failed');
+                }
+            } catch (error) {
+                showError('register-error', 'Registration failed. Please try again.');
+            }
+        }
+
+        function handleLogout() {
+            currentToken = null;
+            currentUser = null;
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            document.getElementById('auth-container').classList.remove('hidden');
+            document.getElementById('navigation').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-container').classList.add('hidden');
+            document.getElementById('navigation').classList.remove('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+
+            // Update UI based on user role
+            document.getElementById('user-info').textContent = 
+                `${currentUser.first_name} ${currentUser.last_name} (${currentUser.role})`;
+            
+            document.getElementById('dashboard-title').textContent = 
+                currentUser.role === 'TEACHER' ? 'My Assignments' : 'Available Assignments';
+            
+            document.getElementById('create-assignment-btn').classList.toggle('hidden', currentUser.role !== 'TEACHER');
+
+            loadAssignments();
+        }
+
+        async function loadAssignments() {
+            document.getElementById('loading-assignments').classList.remove('hidden');
+            document.getElementById('assignments-error').classList.add('hidden');
+            document.getElementById('no-assignments').classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/assignments/`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                const data = await response.json();
+                const assignments = data.results || data;
+
+                document.getElementById('loading-assignments').classList.add('hidden');
+
+                if (assignments.length === 0) {
+                    document.getElementById('no-assignments').classList.remove('hidden');
+                } else {
+                    renderAssignments(assignments);
+                }
+            } catch (error) {
+                document.getElementById('loading-assignments').classList.add('hidden');
+                showError('assignments-error', 'Failed to load assignments');
+            }
+        }
+
+        function renderAssignments(assignments) {
+            const grid = document.getElementById('assignments-grid');
+            grid.innerHTML = '';
+
+            assignments.forEach(assignment => {
+                const card = createAssignmentCard(assignment);
+                grid.appendChild(card);
+            });
+        }
+
+        function createAssignmentCard(assignment) {
+            const dueDate = new Date(assignment.due_date);
+            const isOverdue = dueDate < new Date();
+            const formattedDate = dueDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500';
+            
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-800">${assignment.title}</h3>
+                        <p class="text-sm text-gray-600 mt-1">
+                            by ${assignment.teacher.first_name} ${assignment.teacher.last_name}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        <div class="flex items-center text-sm ${isOverdue ? 'text-red-600' : 'text-gray-600'}">
+                            📅 ${formattedDate}
+                        </div>
+                        ${isOverdue ? '<div class="flex items-center text-red-600 text-sm mt-1">⚠️ Overdue</div>' : ''}
+                    </div>
+                </div>
+                
+                ${assignment.description ? `<p class="text-gray-700 mb-4">${assignment.description}</p>` : ''}
+                
+                <div class="flex space-x-2">
+                    ${currentUser.role === 'STUDENT' ? 
+                        `<button onclick="openSubmissionForm(${assignment.id})" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                            📤 Submit
+                        </button>` : 
+                        `<button onclick="viewSubmissions(${assignment.id})" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                            📄 View Submissions
+                        </button>`
+                    }
+                </div>
+            `;
+
+            return card;
+        }
+
+        async function handleCreateAssignment(e) {
+            e.preventDefault();
+            
+            const assignmentData = {
+                title: document.getElementById('assignment-title').value,
+                description: document.getElementById('assignment-description').value,
+                due_date: document.getElementById('assignment-due-date').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/assignments/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(assignmentData)
+                });
+
+                const data = await response.json();
+
+                if (data.id) {
+                    hideModal('create-assignment-modal');
+                    loadAssignments();
+                    document.getElementById('create-assignment-form').reset();
+                } else {
+                    showError('create-assignment-error', 'Failed to create assignment');
+                }
+            } catch (error) {
+                showError('create-assignment-error', 'Failed to create assignment');
+            }
+        }
+
+        function openSubmissionForm(assignmentId) {
+            selectedAssignment = assignmentId;
+            // Find assignment details
+            const assignmentCards = document.querySelectorAll('#assignments-grid > div');
+            assignmentCards.forEach(card => {
+                const button = card.querySelector('button[onclick*="' + assignmentId + '"]');
+                if (button) {
+                    const title = card.querySelector('h3').textContent;
+                    document.getElementById('submit-assignment-title').textContent = `Assignment: ${title}`;
+                }
+            });
+            showModal('submit-assignment-modal');
+        }
+
+        async function handleSubmitAssignment(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('assignment_id', selectedAssignment);
+            formData.append('content', document.getElementById('submission-content').value);
+            
+            const fileInput = document.getElementById('submission-file');
+            if (fileInput.files[0]) {
+                formData.append('file', fileInput.files[0]);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/submissions/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.id) {
+                    hideModal('submit-assignment-modal');
+                    document.getElementById('submit-assignment-form').reset();
+                    alert('Assignment submitted successfully!');
+                } else {
+                    showError('submit-assignment-error', 'Failed to submit assignment');
+                }
+            } catch (error) {
+                showError('submit-assignment-error', 'Failed to submit assignment');
+            }
+        }
+
+        async function viewSubmissions(assignmentId) {
+            showModal('view-submissions-modal');
+            document.getElementById('loading-submissions').classList.remove('hidden');
+            document.getElementById('submissions-error').classList.add('hidden');
+            document.getElementById('no-submissions').classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/assignments/${assignmentId}/submissions/`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+
+                const submissions = await response.json();
+
+                document.getElementById('loading-submissions').classList.add('hidden');
+
+                if (submissions.length === 0) {
+                    document.getElementById('no-submissions').classList.remove('hidden');
+                } else {
+                    renderSubmissions(submissions);
+                }
+            } catch (error) {
+                document.getElementById('loading-submissions').classList.add('hidden');
+                showError('submissions-error', 'Failed to load submissions');
+            }
+        }
+
+        function renderSubmissions(submissions) {
+            const list = document.getElementById('submissions-list');
+            list.innerHTML = '';
+
+            submissions.forEach(submission => {
+                const submissionDiv = document.createElement('div');
+                submissionDiv.className = 'bg-gray-50 rounded-lg p-4 border';
+                
+                const submittedDate = new Date(submission.submitted_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                submissionDiv.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold text-gray-800">
+                            ${submission.student.first_name} ${submission.student.last_name}
+                        </h3>
+                        <span class="text-sm text-gray-600">${submittedDate}</span>
+                    </div>
+                    
+                    ${submission.content ? `
+                        <div class="mb-3">
+                            <p class="text-sm font-medium text-gray-700 mb-1">Content:</p>
+                            <p class="text-gray-600 bg-white p-3 rounded border">${submission.content}</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${submission.file ? `
+                        <div class="mb-3">
+                            <p class="text-sm font-medium text-gray-700 mb-1">File:</p>
+                            <a href="${submission.file}" target="_blank" class="text-blue-600 hover:underline">
+                                📎 View uploaded file
+                            </a>
+                        </div>
+                    ` : ''}
+                    
+                    ${submission.grade ? `
+                        <div class="mb-2">
+                            <span class="text-sm font-medium text-gray-700">Grade: </span>
+                            <span class="text-green-600 font-semibold">${submission.grade}/100</span>
+                        </div>
+                    ` : ''}
+                    
+                    ${submission.feedback ? `
+                        <div>
+                            <p class="text-sm font-medium text-gray-700 mb-1">Feedback:</p>
+                            <p class="text-gray-600 bg-white p-3 rounded border">${submission.feedback}</p>
+                        </div>
+                    ` : ''}
+                `;
+
+                list.appendChild(submissionDiv);
+            });
+        }
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            // Clear error messages when hiding modals
+            const errorElements = document.querySelectorAll(`#${modalId} [id$="-error"]`);
+            errorElements.forEach(el => {
+                el.classList.add('hidden');
+                el.textContent = '';
+            });
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+        }
+
+        // Make functions global for onclick handlers
+        window.openSubmissionForm = openSubmissionForm;
+        window.viewSubmissions = viewSubmissions;
+    </script>
+</body>
+</html> 
